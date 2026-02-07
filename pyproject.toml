@@ -1,19 +1,19 @@
+[build-system]
+requires = ["poetry-core>=1.0.0,<2.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "subfeed"
 version = "0.1.1"
 description = "High-throughput I/O coordinator for feeding persistent subprocesses."
-authors = ["Ben Skubi <bskubi@gmail.com>"]
+authors = ["Ben Skubi <skubi@ohsu.edu>"]
 license = "MIT"
 readme = "README.md"
 packages = [{include = "subfeed", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
 hypothesis = "*"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
