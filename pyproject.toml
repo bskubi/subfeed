@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "subfeed"
-version = "0.1.0"
+version = "0.1.1"
 description = "High-throughput I/O coordinator for feeding persistent subprocesses."
 authors = ["Ben Skubi <bskubi@gmail.com>"]
 license = "MIT"

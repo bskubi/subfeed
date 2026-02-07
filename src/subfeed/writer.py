@@ -19,8 +19,11 @@ class Writer:
     context: SyncContext
     io: IO
     queue: Queue = field(default_factory = Queue)
+    ignore_broken_pipe: bool = False
     timeout = 1.
     thread: Thread = field(init = False)
+
+    # Events
 
     def start(self):
         self.thread.start()
@@ -30,16 +33,26 @@ class Writer:
             try:
                 batch = self.queue.get(timeout = self.timeout)
                 try:
-                    self.io.write(self.filter(batch))
+                    output = self.filter(batch)
+                    self.io.write(output)
                     self.io.flush()
                     self.queue.task_done()
                 except BrokenPipeError:
-                    break
+                    if self.ignore_broken_pipe:
+                        break
+                    else:
+                        raise
             except Empty:
                 continue
 
         # Close input to unblock processes that are waiting on EOF for it
-        self.io.close()
+        try:
+            self.io.close()
+        except BrokenPipeError as e:
+            if self.ignore_broken_pipe:
+                pass
+            else:
+                raise
 
     def filter(self, batch):
         "Identity filter"

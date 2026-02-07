@@ -3,6 +3,8 @@ from typing import List, Dict, Type, IO
 from threading import Thread
 from queue import Queue
 import time
+import os
+import sys
 from .sync_context import SyncContext
 from .task import TaskTemplate, Task, Mode
 from .worker import Worker
@@ -63,6 +65,12 @@ class Coordinator:
             writer_types,
             maxsize=self.writer_queue_maxsize
         )
+
+        # Ignore BrokenPipeError if channel does not need to be exhausted
+        exhaust_channels = self.exhaust_channels
+        for name, writer in worker.writers.items():
+            writer.ignore_broken_pipe = name not in exhaust_channels
+        
         
         worker.start()
         
@@ -113,10 +121,7 @@ class Coordinator:
     def close(self):
         self.context.eof.set()
 
-        exhaust_channels = [
-            name for name, spec in self.writer_specs.items() 
-            if spec.exhaust
-        ]
+        exhaust_channels = self.exhaust_channels
         
         while True:
             # COPY the list to avoid "RuntimeError: list changed size during iteration"
@@ -132,12 +137,16 @@ class Coordinator:
                 break
             time.sleep(0.01)
 
-        # No need to close worker threads (they're all daemons) or manually
-        # close writer output channels (writers close them independently).
-
         for task in self.tasks:
             if task.process:
                 task.process.wait()
+
+    @property
+    def exhaust_channels(self) -> List[str]:
+        return [
+            name for name, spec in self.writer_specs.items() 
+            if spec.exhaust
+        ]
 
     def __enter__(self):
         self.start()

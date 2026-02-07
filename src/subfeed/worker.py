@@ -20,6 +20,8 @@ class Worker:
     writers: Dict[str, Writer]
     timeout = 1.
     thread: Thread = field(init=False)
+    
+    # Events
 
     @staticmethod
     def from_task(
